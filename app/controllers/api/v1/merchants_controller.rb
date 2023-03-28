@@ -1,0 +1,1 @@
+class API::V1::MerchantsController < ApplicationRecord
