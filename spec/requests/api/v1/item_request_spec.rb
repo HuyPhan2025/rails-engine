@@ -2,9 +2,7 @@
 
 # RSpec.describe "Item API" do
 #   before do
-#     create_list(:merchant, 3)
-    
-#     create_list(:item, 5)
+#     create_list(:item, 3)
 #   end
 
 #   describe "#index" do
