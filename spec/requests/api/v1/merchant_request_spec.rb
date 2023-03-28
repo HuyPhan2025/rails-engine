@@ -19,4 +19,17 @@ RSpec.describe "Merchant API" do
       expect(parse[:data][0][:attributes][:name]).to eq(Merchant.first.name)
     end
   end
+
+  describe "#show" do
+    it "return one merchant" do
+      get "/api/v1/merchants/:id"
+      binding.pry
+
+      expect(response).to be_successful 
+
+      parse = JSON.parse(response.body, symbolize_names: true)
+     
+
+    end
+  end
 end
