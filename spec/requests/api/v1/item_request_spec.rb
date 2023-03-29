@@ -2,8 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Item API" do
 
-  describe "#index" do
-    
+  describe "#index" do   
     it "can return all items" do
       create_list(:item, 3)
       get "/api/v1/items"
@@ -17,20 +16,21 @@ RSpec.describe "Item API" do
       expect(parse[:data][0].keys).to eq([:id, :type, :attributes])
       expect(parse[:data][0][:attributes][:name]).to eq(Item.first.name)
     end
-  end
 
+  end
+  
   describe "#show" do
     it "return one item" do
       create_list(:item, 3)
-
+      
       item = Item.first
-
+      
       get "/api/v1/items/#{item.id}"
-
+      
       expect(response).to be_successful 
       
       parse = JSON.parse(response.body, symbolize_names: true)
-
+      
       expect(parse[:data].keys).to eq([:id, :type, :attributes])
       expect(parse[:data][:attributes].size).to eq(4)
       expect(parse[:data][:id]).to eq(item.id.to_s)
@@ -46,13 +46,40 @@ RSpec.describe "Item API" do
       expect(response).to have_http_status(404)
       expect(JSON.parse(response.body)).to eq({"error"=>"Couldn't find Item with 'id'=abc"})
     end
+
+    it "can get the merchant data for a given item ID" do
+      merchant = create(:merchant)
+      item = create(:item, merchant_id: merchant.id)
+  
+      get "/api/v1/items/#{item.id}/merchant"
+  
+      expect(response).to be_successful
+  
+      parse = JSON.parse(response.body, symbolize_names: true)
+
+      expect(parse[:data].size).to eq(3)
+      expect(parse[:data]).to be_a Hash
+      expect(parse[:data].keys).to eq([:id, :type, :attributes])
+      expect(parse[:data][:id]).to eq(Merchant.first.id.to_s)
+      expect(parse[:data][:type]).to eq("merchant")
+      expect(parse[:data][:attributes]).to eq({name: Merchant.first.name})
+    end
+
+    it "should return 404" do
+      merchant = create(:merchant)
+      item = create(:item, merchant_id: merchant.id)
+  
+      get "/api/v1/items/abe/merchant"
+
+      expect(response).to have_http_status(404)
+      expect(JSON.parse(response.body)).to eq({"error"=>"Couldn't find Item with 'id'=abe"})
+    end
   end
 
   describe "#create" do
     it "can create an item" do
       id = create(:merchant).id
       create_list(:item, 3)
-
 
       item_params = ({
                       name: 'Magic',
@@ -73,6 +100,26 @@ RSpec.describe "Item API" do
       expect(created_item.description).to eq(item_params[:description])
       expect(created_item.unit_price).to eq(item_params[:unit_price])
       expect(created_item.merchant_id).to eq(item_params[:merchant_id])
+    end
+
+    it "return an error if any attribute is missing" do
+      id = create(:merchant).id
+      create(:item)
+
+      item_params = ({
+        name: nil,
+        description: 'Explanation for confusing Rails stuff',
+        unit_price: 12345.99,
+        merchant_id: id
+      })
+
+      headers = { "CONTENT_TYPE" => "application/json" } 
+
+      post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+
+      expect(response).to_not be_successful
+      expect(response).to have_http_status(400)
+      expect(JSON.parse(response.body)).to eq({"error"=>"Invalid Create"})
     end
   end
 
@@ -111,5 +158,7 @@ RSpec.describe "Item API" do
       expect(item.name).to_not eq(previous_name)
       expect(item.name).to eq("Magic")
     end
+
+    
   end
 end
