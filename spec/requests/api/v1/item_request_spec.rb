@@ -1,12 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe "Item API" do
-  before do
-    create_list(:item, 3)
-  end
 
   describe "#index" do
+    
     it "can return all items" do
+      create_list(:item, 3)
       get "/api/v1/items"
 
       expect(response).to be_successful
@@ -22,6 +21,8 @@ RSpec.describe "Item API" do
 
   describe "#show" do
     it "return one item" do
+      create_list(:item, 3)
+
       item = Item.first
 
       get "/api/v1/items/#{item.id}"
@@ -50,6 +51,8 @@ RSpec.describe "Item API" do
   describe "#create" do
     it "can create an item" do
       id = create(:merchant).id
+      create_list(:item, 3)
+
 
       item_params = ({
                       name: 'Magic',
@@ -73,13 +76,40 @@ RSpec.describe "Item API" do
     end
   end
 
-  # describe "#destroy" do
-  #   expect(Item.count).to eq(3)
+  describe "#destroy" do
+    it 'deletes the item' do
+      item = create(:item)
 
-  #   delete "/api/v1/items/#{item.id}"
+      expect(Item.count).to eq(1)
+     
+      delete "/api/v1/items/#{item.id}"
 
-  #   expect(response).to be_successful
-  #   expect(Item.count).to eq(2)
+      expect(response).to be_successful
+      expect(Item.count).to eq(0)
+      expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
 
-  # end
+  describe "#edit" do
+    it "update an existing item" do
+      merchant_id = create(:merchant).id
+      item_id = create(:item).id
+
+      previous_name = Item.last.name
+      item_params = ({
+        name: 'Magic',
+        description: 'Explanation for confusing Rails stuff',
+        unit_price: 12345.99,
+        merchant_id: merchant_id
+      })
+      headers = {"CONTENT_TYPE" => "application/json"}
+
+      patch "/api/v1/items/#{item_id}", headers: headers, params: JSON.generate({item: item_params})
+      item = Item.find_by(id: item_id)
+
+      expect(response).to be_successful
+      expect(item.name).to_not eq(previous_name)
+      expect(item.name).to eq("Magic")
+    end
+  end
 end
