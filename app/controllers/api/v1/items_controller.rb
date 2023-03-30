@@ -21,6 +21,9 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def destroy
+    # item = Item.find(params[:id])
+    # item.destroy_association.destroy_all
+    # item.destroy
     Item.destroy(params[:id])
   end
 

@@ -4,4 +4,6 @@ class Item < ApplicationRecord
   validates_numericality_of :unit_price
 
   belongs_to :merchant
+
+  def delete
 end
