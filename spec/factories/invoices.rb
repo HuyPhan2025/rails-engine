@@ -10,7 +10,7 @@ FactoryBot.define do
       status {"returned"}
     end
 
-    factory :packaged_invoice, trait: [:packaged]
-    factory :returned_invoice, trait: [:returned]
+    factory :packaged_invoice, traits: [:packaged]
+    factory :returned_invoice, traits: [:returned]
   end
 end
