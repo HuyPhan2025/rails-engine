@@ -159,6 +159,24 @@ RSpec.describe "Item API" do
       expect(item.name).to eq("Magic")
     end
 
-    
+    it "can't update when id is invalid" do
+      merchant_id = create(:merchant).id
+      item_id = create(:item).id
+
+      previous_name = Item.last.name
+      item_params = ({
+        name: 'Magic',
+        description: 'Explanation for confusing Rails stuff',
+        unit_price: 12345.99,
+        merchant_id: merchant_id
+      })
+      headers = {"CONTENT_TYPE" => "application/json"}
+
+      patch "/api/v1/items/adfewf", headers: headers, params: JSON.generate({item: item_params})
+      item = Item.find_by(id: item_id)
+
+      expect(response).to have_http_status(404)
+      expect(JSON.parse(response.body)).to eq({"error"=>"Couldn't find Item with 'id'=adfewf"})
+    end
   end
 end
