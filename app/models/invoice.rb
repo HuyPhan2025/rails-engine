@@ -1,10 +1,7 @@
 class Invoice < ApplicationRecord
+  belongs_to :customer
+  belongs_to :merchant
 
-  def destroy_association
-    if items.count == 1
-      destroy
-    else
-      false
-    end
-  end
+  has_many :invoice_items
+  has_many :items, through: :invoice_items
 end
