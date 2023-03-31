@@ -135,6 +135,44 @@ RSpec.describe "Item API" do
       expect(Item.count).to eq(0)
       expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
     end
+
+    it "can destroy item and associated records  if its single-item-invoice" do
+      Item.destroy_all
+      Merchant.destroy_all
+
+      merchant = create(:merchant)
+
+      item1 = create(:item, merchant: merchant)
+      item2 = create(:item, merchant: merchant)
+      item3 = create(:item, merchant: merchant)
+
+      customer1 = create(:customer)
+
+      invoice1 = create(:invoice, merchant: merchant, customer: customer1)
+      invoice2 = create(:invoice, merchant: merchant, customer: customer1)
+
+      create(:invoice_item, item: item1, invoice: invoice1)
+      create(:invoice_item, item: item2, invoice: invoice2)
+      create(:invoice_item, item: item3, invoice: invoice2)
+
+      create(:transaction, invoice:invoice1)
+      create(:transaction, invoice:invoice2)
+
+      expect(Item.all.to_a).to eq([item1, item2, item3])
+      expect(Invoice.all.to_a).to eq([invoice1, invoice2])
+      expect(InvoiceItem.all.size).to eq(3)
+      expect(Transaction.all.size).to eq(2)
+
+      delete "/api/v1/items/#{item1.id}"
+
+      expect(Item.all.to_a).to eq([item2, item3])
+      expect(Invoice.all.to_a).to eq([invoice2])
+      expect(InvoiceItem.all.size).to eq(2)
+      expect(Transaction.all.size).to eq(1)  
+
+      expect(response).to be_successful
+      expect(response).to have_http_status(204)
+    end
   end
 
   describe "#edit" do
