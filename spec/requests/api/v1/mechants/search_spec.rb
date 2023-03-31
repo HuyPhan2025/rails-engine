@@ -21,7 +21,7 @@ RSpec.describe "Merchants Search API" do
       expect(parse[:data][:attributes][:name]).to_not eq(merchant3.name)
     end
 
-    it "should return the error when no merchant is found with the given search" do
+    it "should return an empty hash when no merchant is found with the given search" do
       merchant1 = create(:merchant, name: "Christy")
       merchant2 = create(:merchant, name: "Christine")
       merchant3 = create(:merchant, name: "Sue")
